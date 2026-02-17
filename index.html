@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mayo & Connacht Home Education Directory</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f4f0; color: #333; }
+h1 { color: #2E7D32; text-align: center; margin-bottom: 5px; }
+.subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+.search-container { max-width: 600px; margin: 0 auto 20px auto; position: relative; }
+.search-box { width: 100%; padding: 12px 40px 12px 12px; font-size: 16px; border: 2px solid #2E7D32; border-radius: 8px; box-sizing: border-box; }
+.search-box:focus { outline: none; border-color: #1B5E20; box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+.clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 20px; cursor: pointer; color: #666; display: none; padding: 0 8px; }
+.clear-search:hover { color: #333; }
+.search-results { text-align: center; color: #666; margin-bottom: 10px; font-size: 14px; display: none; }
+.tabs { display: flex; gap: 4px; margin-bottom: 0; border-bottom: 2px solid #2E7D32; padding-bottom: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tab { padding: 10px 16px; background: #e8f5e9; border: 1px solid #ccc; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; font-weight: 600; color: #2E7D32; flex-shrink: 0; }
+.tab:hover { background: #c8e6c9; }
+.tab.active { background: #2E7D32; color: white; }
+.tab:focus { outline: 2px solid #1B5E20; outline-offset: 2px; }
+.sheet { display: none; background: white; border: 1px solid #ccc; border-top: none; padding: 20px; border-radius: 0 0 8px 8px; overflow-x: auto; }
+.sheet.active { display: block; }
+table { border-collapse: collapse; width: 100%; min-width: 600px; }
+th { background: #2E7D32; color: white; padding: 10px 12px; text-align: left; font-size: 14px; position: sticky; top: 0; }
+td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; font-size: 13px; vertical-align: top; }
+tr:nth-child(even) { background: #f5f5f5; }
+tr:hover { background: #e8f5e9; }
+tr.hidden { display: none; }
+.highlight { background-color: #FFEB3B; font-weight: bold; }
+a { color: #0066CC; text-decoration: underline; }
+.welcome-content { max-width: 800px; margin: 0 auto; line-height: 1.6; }
+.welcome-content h2 { color: #2E7D32; }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  body { padding: 10px; }
+  h1 { font-size: 24px; }
+  .subtitle { font-size: 14px; }
+
+  .tabs {
+    border-bottom: none;
+    gap: 8px;
+    padding-bottom: 10px;
+    justify-content: flex-start;
+  }
+
+  .tab {
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid #2E7D32;
+    border-radius: 6px;
+  }
+
+  .tab.active {
+    border: 2px solid #1B5E20;
+  }
+
+  .sheet {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+
+  /* Card layout for tables on mobile */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  table {
+    min-width: 100%;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: white !important;
+  }
+
+  tr:hover {
+    background: #f9f9f9 !important;
+  }
+
+  td {
+    border: none !important;
+    position: relative;
+    padding: 8px 8px 8px 40%;
+    text-align: left;
+    min-height: 30px;
+  }
+
+  td:before {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    content: attr(data-label);
+    font-weight: bold;
+    color: #2E7D32;
+    font-size: 12px;
+    width: 35%;
+  }
+
+  td:first-child {
+    background: #e8f5e9;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 10px;
+    border-radius: 6px 6px 0 0;
+  }
+
+  td:first-child:before {
+    display: none;
+  }
+}
+</style>
+</head>
+<body>
+<h1>Mayo & Connacht Home Education Directory</h1>
+<p class="subtitle">A community resource for home educating families</p>
+
+<div class="search-container">
+<input type="text" id="searchBox" class="search-box" placeholder="Search activities, locations, or keywords..." aria-label="Search directory">
+<button id="clearSearch" class="clear-search" aria-label="Clear search">×</button>
+</div>
+<div id="searchResults" class="search-results"></div>
+
+<div class="tabs" role="tablist">
+<div class="tab active" onclick="showSheet('sheet0', this)" role="tab" aria-selected="true" aria-controls="sheet0" tabindex="0" id="tab0">Welcome</div>
+<div class="tab" onclick="showSheet('sheet1', this)" role="tab" aria-selected="false" aria-controls="sheet1" tabindex="-1" id="tab1">Groups & Support</div>
+<div class="tab" onclick="showSheet('sheet2', this)" role="tab" aria-selected="false" aria-controls="sheet2" tabindex="-1" id="tab2">Home Ed Meetups</div>
+<div class="tab" onclick="showSheet('sheet3', this)" role="tab" aria-selected="false" aria-controls="sheet3" tabindex="-1" id="tab3">Mayo Activities</div>
+<div class="tab" onclick="showSheet('sheet4', this)" role="tab" aria-selected="false" aria-controls="sheet4" tabindex="-1" id="tab4">Galway Activities</div>
+<div class="tab" onclick="showSheet('sheet5', this)" role="tab" aria-selected="false" aria-controls="sheet5" tabindex="-1" id="tab5">Sligo Activities</div>
+<div class="tab" onclick="showSheet('sheet6', this)" role="tab" aria-selected="false" aria-controls="sheet6" tabindex="-1" id="tab6">Roscommon & Leitrim</div>
+<div class="tab" onclick="showSheet('sheet7', this)" role="tab" aria-selected="false" aria-controls="sheet7" tabindex="-1" id="tab7">Quick Reference</div>
+</div>
+<div id="sheet0" class="sheet active" role="tabpanel" aria-labelledby="tab0">
+<div class="welcome-content">
+<h2>HOME EDUCATION DIRECTORY</h2>
+<p>Mayo & Connacht Region, Ireland</p>
+<h2>Welcome!</h2>
+<p>This directory has been created to help new home educating families in Mayo and the wider Connacht region find local support groups, community connections, and educational activities for their children.
+
+The directory includes:
+• Home Education Groups & Support - National and regional organisations
+• Home Ed Meetups - Local activities specifically for home ed families (community recommended!)
+• Activities by County - Educational venues, nature centers, museums, and family activities
+
+Home education is legal in Ireland and enshrined in the Irish constitution. Tusla maintains a register of home educated children.
+
+Last Updated: February 2026
+Includes recommendations from local home ed community</p>
+</div>
+</div>
+<div id="sheet1" class="sheet" role="tabpanel" aria-labelledby="tab1">
+<table>
+<tr><th>Organisation</th><th>Type</th><th>Coverage</th><th>Description</th><th>Website</th><th>Contact/Notes</th></tr>
+<tr><td>Home Education Network (HEN) Ireland</td><td>Support & Advocacy</td><td>National</td><td>Main support and lobby group for home educators in Ireland. Helps parents exchange ideas, hosts meetings, newsletters, and operates a library service.</td><td><a href="https://www.henireland.org/" target="_blank">henireland.org</a></td><td>Email via website for membership</td></tr>
+<tr><td>Home Ed Connects</td><td>Community Network</td><td>National</td><td>Community of 20+ home education groups across Ireland. Parents volunteer to run Facebook groups, answer calls, and host Zoom meetings.</td><td>Via HEN Ireland</td><td>Email HEN for invite link</td></tr>
+<tr><td>HEN Connemara Contact</td><td>Local Support</td><td>Connemara, Co. Galway</td><td>Sarah Mc Loughlin - unschooling family in Connemara. Wellness coach & former secondary teacher. 4+ years home ed experience.</td><td><a href="https://www.henireland.org/local-contacts" target="_blank">henireland.org/local-contacts</a></td><td>085 7192511 | sarahmc92@hotmail.com</td></tr>
+<tr><td>HEN Sligo Contact</td><td>Local Support</td><td>Sligo</td><td>Anna - bilingual (Russian/English) family in Sligo 9+ years. 2 boys (home ed from start). Eclectic approach from curriculum to unschooling.</td><td><a href="https://www.henireland.org/local-contacts" target="_blank">henireland.org/local-contacts</a></td><td>anna_sergeenko@yahoo.com</td></tr>
+<tr><td>Irish Christian Home Educators (ICHEA)</td><td>Faith-Based Support</td><td>National</td><td>Support and information for Christian home educators in Ireland.</td><td><a href="https://www.ichea.net/" target="_blank">ichea.net</a></td><td>Via website</td></tr>
+<tr><td>Home School Group Ireland</td><td>Facebook Community</td><td>National</td><td>Very active, helpful general homeschooling Facebook group.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Mater Dei Education</td><td>Curriculum Support</td><td>National</td><td>Supports classical homeschooling with personal support, lesson plans, and books.</td><td><a href="https://www.materdeieducation.ie/" target="_blank">materdeieducation.ie</a></td><td>Via website</td></tr>
+<tr><td>Tusla - Education Welfare</td><td>Government Body</td><td>National</td><td>Maintains register of home educated children. Provides assessment and registration services.</td><td><a href="https://www.tusla.ie/" target="_blank">tusla.ie</a></td><td>Legal requirement to register</td></tr>
+<tr><td>Citizens Information</td><td>Information Service</td><td>National</td><td>Official guidance on home education rights, requirements, and processes in Ireland.</td><td><a href="https://www.citizensinformation.ie/" target="_blank">citizensinformation.ie</a></td><td>Free service</td></tr>
+<tr><td>Heritage Ireland - Education</td><td>Educational Programmes</td><td>National (OPW sites)</td><td>Free educational visits to heritage sites for home educators. Guided tours and resources available at sites like Céide Fields, Rathcroghan, and more.</td><td><a href="https://www.heritageireland.ie/learn/educational-school-visits" target="_blank">heritageireland.ie/learn/educational-school-visits</a></td><td>Book via website</td></tr>
+<tr><td>Mayo Sligo Home Educators</td><td>Facebook Group</td><td>Mayo & Sligo</td><td>Active regional Facebook group for home educators in Mayo and Sligo. Great for local meetups and advice.</td><td><a href="https://www.facebook.com/groups/381383792030224" target="_blank">facebook.com/groups/381383792030224</a></td><td>Request to join</td></tr>
+<tr><td>Galway Home Ed (Under 8s)</td><td>Facebook Group</td><td>Galway</td><td>Facebook group specifically for families with younger children (under 8) who are home educating.</td><td><a href="https://www.facebook.com/groups/132100874262478" target="_blank">facebook.com/groups/132100874262478</a></td><td>Request to join</td></tr>
+<tr><td>Leitrim & Surrounds Home Ed</td><td>Facebook Group</td><td>Leitrim area</td><td>Facebook group for home educators in Leitrim and surrounding areas.</td><td><a href="https://www.facebook.com/groups/1413952212120229" target="_blank">facebook.com/groups/1413952212120229</a></td><td>Request to join</td></tr>
+<tr><td>Roscommon Homeschooling</td><td>Facebook Group</td><td>Roscommon</td><td>Facebook group for home educators in County Roscommon.</td><td><a href="https://www.facebook.com/groups/964621527025426" target="_blank">facebook.com/groups/964621527025426</a></td><td>Request to join</td></tr>
+<tr><td>Galway County Libraries</td><td>Library Service</td><td>Galway (29 branches)</td><td>Free library membership. Summer Stars reading programme, Children's Book Festival, dyslexia-friendly resources, C-Pens, makerspaces, citizen science kits.</td><td><a href="https://www.galway.ie/libraries-archives" target="_blank">galway.ie/libraries-archives</a></td><td>Free membership</td></tr>
+<tr><td>Mayo Home Educators</td><td>Facebook Group</td><td>Mayo</td><td>Facebook community group for home educators in County Mayo.</td><td><a href="https://www.facebook.com/groups/1724660887809542" target="_blank">facebook.com/groups/1724660887809542</a></td><td>Request to join</td></tr>
+<tr><td>Mayo County Library</td><td>Library Service</td><td>Mayo (17 branches)</td><td>FREE membership. Branches in Castlebar, Ballina, Westport, Ballyhaunis, Belmullet + 12 more. Weekly Storytime sessions. Summer Stars reading programme. Children's Book Festival (October). Sensory room (Ballina). Musical instrument lending (Castlebar). Reusable party kits available.</td><td><a href="https://www.mayo.ie/library" target="_blank">mayo.ie/library</a></td><td>FREE - facebook.com/mayocountylibrary</td></tr>
+<tr><td>HEN Ireland - Home Ed Groups Directory</td><td>Directory/Support</td><td>National</td><td>Central directory of all home ed groups across Ireland. Find local Facebook groups, WhatsApp groups, meetups. Regularly updated. Essential first stop for finding your local community!</td><td><a href="https://henireland.org/home-ed-groups/" target="_blank">henireland.org/home-ed-groups</a></td><td>Also see /local-contacts</td></tr>
+<tr><td>Special Needs Home Education Ireland</td><td>Facebook - SEN Support</td><td>National</td><td>Support group specifically for families home educating children with special needs.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>School Refusal & Anxiety Parent Support Ireland</td><td>Facebook - Support</td><td>National</td><td>Support for families dealing with school refusal and anxiety - many transition to home ed.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Irish Unschoolers</td><td>Facebook - Unschooling</td><td>National</td><td>Community for families following an unschooling/child-led approach.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Irish Gameschoolers (Board Games)</td><td>Facebook - Interest</td><td>National</td><td>Using board games for learning! Great for maths, strategy, social skills.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Irish Home Ed Teens/Parents of Teens</td><td>Facebook - Age Group</td><td>National</td><td>Support specifically for home educating teenagers and their parents.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Irish Home Ed Tweens</td><td>Facebook - Age Group</td><td>National</td><td>For families with children in the tween years (roughly 9-12).</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Home Ed Camping and Adventures</td><td>Facebook - Activities</td><td>National</td><td>Connecting home ed families for camping trips and outdoor adventures together.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+<tr><td>Home Ed Connects</td><td>WhatsApp Community</td><td>National</td><td>Community of 20+ home ed groups. Email HEN for invite link to this WhatsApp community.</td><td>henireland.org</td><td>Email HEN for invite</td></tr>
+<tr><td>Irish Homeschoolers Buy, Sell & Swap</td><td>Facebook - Resources</td><td>National</td><td>Buy, sell and swap curriculum, books, resources between home ed families.</td><td>Facebook</td><td>Search on Facebook</td></tr>
+</table>
+</div>
+<div id="sheet2" class="sheet" role="tabpanel" aria-labelledby="tab2">
+<table>
+<tr><th>Activity/Group</th><th>Type</th><th>Location</th><th>Schedule</th><th>Cost</th><th>Details</th><th>Contact</th></tr>
+<tr><td>Mayo Autism Camp</td><td>SEN Activities</td><td>Balla (events across Mayo)</td><td>Various events throughout year</td><td>Check Facebook</td><td>Events and activities specifically for autistic children. Parents can connect with each other. Highly recommended.</td><td><a href="https://www.facebook.com/share/1CnL1UGnDF" target="_blank">facebook.com/share/1CnL1UGnDF</a></td></tr>
+<tr><td>Tonnta Adventure</td><td>Outdoor Education</td><td>Belleek Woods, Ballina</td><td>After school sessions, camps</td><td>Varies</td><td>Surf camps, beach camps, woodland activities. Campfire and s'mores! Children make great friends.</td><td><a href="https://www.facebook.com/TonntaAdventure" target="_blank">facebook.com/TonntaAdventure</a></td></tr>
+<tr><td>Kids in Motion</td><td>Gymnastics/Free Play</td><td>Breaffy Rd Business Park, Castlebar</td><td>Fortnightly Tuesdays, 2-4pm</td><td>€8/hour</td><td>Home ed free play & gymnastics sessions. IAGA certified. Contact Lorraine Cronin.</td><td><a href="https://www.kidsinmotion.ie/" target="_blank">kidsinmotion.ie | 085-1652062</a></td></tr>
+<tr><td>Elemental Outdoor Forest School</td><td>Forest School</td><td>Ballindine</td><td>Wednesdays 12:30-2:30pm</td><td>€15/child</td><td>Regular forest school sessions in woodland setting.</td><td><a href="https://www.elemental-ol.ie/" target="_blank">elemental-ol.ie</a></td></tr>
+<tr><td>5 Star Fun Meetup</td><td>Social Meetup</td><td>Grange, Co. Sligo</td><td>2nd & 4th Monday, 10am</td><td>Free</td><td>Regular home education social meetup.</td><td>Co. Sligo 5 Star Fun</td></tr>
+<tr><td>Rossnowlagh Farmers Market</td><td>Social/Activities</td><td>Rossnowlagh, Co. Donegal</td><td>Fridays 10am-2pm</td><td>Free entry</td><td>Welcomes homeschoolers for social meetups. Often has free guided activities for young children. Right by the beach!</td><td>At the market</td></tr>
+<tr><td>Balla Community Centre Sensory Room</td><td>SEN/Sensory</td><td>Balla Community Centre</td><td>7 days a week - book anytime</td><td>Free/Low cost</td><td>Bubble tube, fibre optic lights, padded mats. For relaxation, learning, sensory play. All ages.</td><td>087 1850860 | info@balla.ie</td></tr>
+<tr><td>Messy Tots (Balla)</td><td>Toddler/Sensory</td><td>Balla Community Centre</td><td>Mondays 10:15am</td><td>€45/4-week term</td><td>Multisensory world, messy play & music for little ones. Ages 10 months - 4 years. Book with Magda - fills up fast!</td><td>089 220 0234 (Magda)</td></tr>
+<tr><td>GM Taekwon-do (Balla)</td><td>Martial Arts</td><td>Balla Community Centre</td><td>Thursdays 6:30pm</td><td>Free trial</td><td>Taekwon-do for children & adults. Great for discipline, fitness, confidence. New members welcome.</td><td><a href="https://www.gmtaekwon-do.com" target="_blank">gmtaekwon-do.com</a></td></tr>
+<tr><td>Baboró Children's Arts Festival</td><td>Arts/Culture</td><td>Galway City</td><td>October (10 days)</td><td>Subsidised tickets</td><td>Ireland's flagship children's arts festival. 50% subsidised tickets for home ed groups! Theatre, dance, circus, workshops. Contact schools@baboro.ie to book as a group.</td><td><a href="https://www.baboro.ie/" target="_blank">baboro.ie | 091 562642</a></td></tr>
+</table>
+</div>
+<div id="sheet3" class="sheet" role="tabpanel" aria-labelledby="tab3">
+<table>
+<tr><th>Venue/Activity</th><th>Category</th><th>Location</th><th>Description</th><th>Best For</th><th>Website/Contact</th></tr>
+<tr><td>National Museum of Ireland - Country Life</td><td>Museum</td><td>Turlough, Castlebar</td><td>Explores traditions of rural life in Ireland through interactive exhibits and hands-on activities.</td><td>All ages</td><td><a href="https://www.museum.ie/" target="_blank">museum.ie</a></td></tr>
+<tr><td>Céide Fields</td><td>Archaeological Site</td><td>Ballycastle, North Mayo</td><td>World's oldest known field systems (5,500+ years). Guided tours explain prehistoric farming and neolithic life.</td><td>Ages 6+</td><td><a href="https://www.heritageireland.ie/" target="_blank">heritageireland.ie</a></td></tr>
+<tr><td>Westport House</td><td>Heritage/History</td><td>Westport</td><td>18th-century mansion with 300 years of history. Guided tours, pirate queen stories, Greek artifacts.</td><td>All ages</td><td><a href="https://www.westporthouse.ie/" target="_blank">westporthouse.ie</a></td></tr>
+<tr><td>Jackie Clarke Collection</td><td>Museum/Archive</td><td>Ballina</td><td>400 years of Irish history through interactive touchscreens. EDUCATION PROGRAMME: school/group tours, workshops, History Week activities. Memory pod for family history research. Census & eviction records. Contact education team for home ed group visits!</td><td>Ages 8+</td><td><a href="https://www.clarkecollection.ie/education-and-community" target="_blank">clarkecollection.ie/education-and-community</a></td></tr>
+<tr><td>Great Western Greenway</td><td>Outdoor/Cycling</td><td>Westport to Achill (42km)</td><td>Ireland's longest off-road cycling/walking trail along the Atlantic coast.</td><td>All ages</td><td><a href="https://www.greenway.ie/" target="_blank">greenway.ie</a></td></tr>
+<tr><td>Mayo Leisure Point</td><td>Indoor Activities</td><td>Castlebar</td><td>Bowling, cinema, soft play, laser games. Good rainy day option.</td><td>All ages</td><td><a href="https://www.mayoleisurepoint.ie/" target="_blank">mayoleisurepoint.ie</a></td></tr>
+<tr><td>Linenhall Arts Centre</td><td>Arts & Culture</td><td>Castlebar</td><td>Art exhibitions, theatre, live music, film screenings, workshops. Dedicated children & families programme and annual Roola Boola Children's Arts Festival.</td><td>Varies by event</td><td><a href="https://www.thelinenhall.com/children-and-young-people" target="_blank">thelinenhall.com/children-and-young-people</a></td></tr>
+<tr><td>Hennigan's Heritage Centre</td><td>Heritage Farm</td><td>Killasser, Swinford</td><td>Traditional farm life experience in unspoilt countryside.</td><td>All ages</td><td>Local inquiry</td></tr>
+<tr><td>Clogher Heritage Complex</td><td>Heritage</td><td>Clogher, Claremorris</td><td>Rural heritage experience and traditional crafts.</td><td>All ages</td><td>Local inquiry</td></tr>
+<tr><td>Blue Flag Beaches</td><td>Nature/Beach</td><td>Various (Keel, Mulranny, etc.)</td><td>Clean, safe beaches with information panels about coastal ecology.</td><td>All ages</td><td><a href="https://www.mayo-ireland.ie/" target="_blank">mayo-ireland.ie</a></td></tr>
+<tr><td>Roola Boola Festival</td><td>Arts Festival</td><td>Castlebar</td><td>Annual children's arts festival. October bank holiday weekend.</td><td>Children</td><td><a href="https://www.thelinenhall.com/children-and-young-people/roolaboola-childrens-arts-festival" target="_blank">thelinenhall.com/children-and-young-people/roolaboola-childrens-arts-festival</a></td></tr>
+<tr><td>Achill Island</td><td>Nature/Outdoor</td><td>Achill Island</td><td>Beaches, cliffs, deserted village, outdoor activities. Surfing, kayaking available.</td><td>All ages</td><td><a href="https://www.achilltourism.com/" target="_blank">achilltourism.com</a></td></tr>
+<tr><td>Croagh Patrick</td><td>Outdoor/Heritage</td><td>Westport</td><td>Ireland's holy mountain. Hiking with stunning views. Visitor centre at base.</td><td>Ages 8+ for climb</td><td><a href="https://www.croagh-patrick.com/" target="_blank">croagh-patrick.com</a></td></tr>
+<tr><td>Mayo Autism Camp</td><td>SEN Support/Activities</td><td>Based in Balla, events across Mayo</td><td>Events and activities for autistic children. Great way for parents to connect. Highly recommended by local families.</td><td>Autistic children</td><td><a href="https://www.facebook.com/share/1CnL1UGnDF" target="_blank">facebook.com/share/1CnL1UGnDF</a></td></tr>
+<tr><td>Tonnta Adventure</td><td>Outdoor/Adventure</td><td>Belleek Woods, Ballina</td><td>After school sessions, camps, surf and beach camps. Campfire activities. Children make great friends.</td><td>Various ages</td><td><a href="https://www.facebook.com/TonntaAdventure" target="_blank">facebook.com/TonntaAdventure</a></td></tr>
+<tr><td>Kids in Motion</td><td>Gymnastics</td><td>Breaffy Road Business Park, Castlebar</td><td>Recreational gymnastics for ages 1-14. Pre-school (3-4), Junior (5-7), Senior (8+) classes. Floor, bars, beams, trampolines, vault, acrobatics. School tours & PE curriculum available. IAGA certified instructors. Also: home ed free play sessions fortnightly Tues 2-4pm €8/hr.</td><td>Ages 1-14</td><td><a href="https://www.facebook.com/KidsInMotionGymnastics" target="_blank">kidsinmotion.ie | FB: KidsInMotionGymnastics</a></td></tr>
+<tr><td>Elemental Outdoor Forest School</td><td>Forest School</td><td>Ballindine</td><td>Weekly forest school sessions. Wednesdays 12:30-2:30pm. €15 per child.</td><td>Various ages</td><td><a href="https://www.elemental-ol.ie/" target="_blank">elemental-ol.ie</a></td></tr>
+<tr><td>Graune Pet Farm & Play Centre</td><td>Farm/Indoor Play</td><td>Cloonfad, nr Ballyhaunis</td><td>14-acre farm with indoor & outdoor activities. Animals (llamas, goats, puppies), go-karts, bouncy castles, sandpit, paddle boats, pony rides, Gruffalo walk. Restaurant on-site. Open 7 days year-round. Great wet weather option.</td><td>All ages</td><td><a href="https://www.graunepetfarmandplaycentre.ie/" target="_blank">graunepetfarmandplaycentre.ie</a></td></tr>
+<tr><td>Westport Adventure Park</td><td>Adventure/Outdoor</td><td>Westport Estate</td><td>Ireland's largest net park! Zip lines, aerial trekking, 10m climbing towers, giant swing, Quarry Edge Leap, swan pedalos, disc golf, playground. Toddler area available. Within historic Westport Estate grounds.</td><td>Ages 3+</td><td><a href="https://www.westportadventure.ie/" target="_blank">westportadventure.ie</a></td></tr>
+<tr><td>Funster Playcentre</td><td>Indoor Play</td><td>Breaffy Rd Business Park, Castlebar</td><td>Multi-level adventure play for under 4'9". Tube slides, indoor football/basketball, under-5s area, excellent sensory room. Large café. Birthday parties from €7. Tue-Sun 10am-6pm (Fri to 7pm).</td><td>Ages 0-12</td><td><a href="https://www.facebook.com/funster.castlebar" target="_blank">facebook.com/funster.castlebar | 094 903 8939</a></td></tr>
+<tr><td>Mayo County Library</td><td>Library/Free</td><td>17 branches across Mayo</td><td>FREE! Weekly Storytime (Castlebar, Westport, Ballina, Ballyhaunis, Belmullet). Borrow musical instruments (bodhrán, harp) from Castlebar. Sensory room in Ballina. Summer Stars, Children's Book Festival, craft events. Party kits to borrow.</td><td>All ages</td><td><a href="https://www.mayo.ie/library" target="_blank">mayo.ie/library | FREE</a></td></tr>
+<tr><td>Balla Community Centre Sensory Room</td><td>SEN/Sensory</td><td>Balla Community Centre, F23A303</td><td>Calm, engaging sensory space with bubble tube, fibre optic lights, padded mats. Perfect for relaxation, learning or sensory play. Available 7 DAYS A WEEK - book your session anytime!</td><td>All ages</td><td>087 1850860 | info@balla.ie</td></tr>
+<tr><td>The Wild West Play Village</td><td>Indoor Play/Sensory</td><td>Westport</td><td>Wild West themed indoor playground for toddlers to 10-year-olds. Climbing frame, slides, ball pit, basketball, soccer, tunnel slide. Dedicated SENSORY ROOM with bubble tube, infinity mirror, fibre optic lights, projector - calm space for sensory play. Café & party rooms. Term time: Thu-Sun. School hols: daily 10am-6pm.</td><td>Toddlers to 10yrs</td><td><a href="https://thewildwest.ie/" target="_blank">thewildwest.ie</a></td></tr>
+<tr><td>Balla Town Park & Fairy Village</td><td>Nature/Walks</td><td>Balla</td><td>35-acre community woodland with FAIRY VILLAGE trail - sculptured waymarkers encourage kids to explore! Oak, beech & horse chestnut trees. Well-laid paths, benches, picnic tables, interpretation boards. Connects to Tóchar Phádraig pilgrim path. Separate playground on Mayo Abbey Road. FREE.</td><td>All ages</td><td><a href="https://www.mayo.ie/en-ie/visit-mayo/things-to-do/activities/walking-hiking/balla-town-park-walks" target="_blank">mayo.ie/parks-playgrounds | FREE</a></td></tr>
+<tr><td>Messy Tots (Balla)</td><td>Toddler/Sensory Play</td><td>Balla Community Centre, F23A303</td><td>Multisensory world - messy play - music for toddlers. Mondays 10:15am. €45 for 4-week term. Ages 10 months - 4 years. Popular - book early!</td><td>10mths-4yrs</td><td>089 220 0234 (Magda)</td></tr>
+<tr><td>GM Taekwon-do (Balla)</td><td>Martial Arts</td><td>Balla Community Centre</td><td>Taekwon-do classes every Thursday 6:30pm. New members welcome - FREE TRIAL available. Great for discipline, fitness and confidence.</td><td>Children & adults</td><td><a href="https://www.gmtaekwon-do.com" target="_blank">gmtaekwon-do.com</a></td></tr>
+<tr><td>Moore Hall & Woodland Walks</td><td>Heritage/Nature</td><td>Carnacon, nr Ballinrobe</td><td>Atmospheric 18th-century ruins on Lough Carra shores. Home of novelist George Moore & 1798 President John Moore. Forest trails, walled garden, PLAYGROUND, toilets. Lesser horseshoe bat habitat (don't disturb coach house!). FREE entry, open year-round.</td><td>All ages</td><td><a href="https://www.coillte.ie/site/moore-hall/" target="_blank">coillte.ie/site/moore-hall</a></td></tr>
+<tr><td>Wild Nephin National Park & Ballycroy Visitor Centre</td><td>Nature/Dark Sky</td><td>Ballycroy, North Mayo</td><td>11,000 hectares of wilderness! FREE interactive exhibition, outdoor classroom, scavenger hunts. WILD CHILD CLUB (summer Tue & Thu) - FREE! Claggan boardwalk (1km, family-friendly). Ireland's first DARK SKY PARK - stargazing! Café, gift shop. Free shuttle bus to Westport (summer). Open Feb-Nov 10am-5:30pm.</td><td>All ages</td><td><a href="https://www.nationalparks.ie/wild-nephin/" target="_blank">nationalparks.ie/wild-nephin</a></td></tr>
+<tr><td>Belleek Woods & Fairy Trail</td><td>Nature/Walks</td><td>Ballina</td><td>One of largest urban woods in Europe! 22,000 trees, 6 miles of trails. FAIRY TRAIL with tiny houses in trees (Ballina Men's Shed project). RED SQUIRREL sanctuary. Duck pond (bring grapes, oats - not bread!). Riverside walks along River Moy. Historical features: hermitage, Knox-Gore Monument. Where Tonnta Adventure runs sessions. FREE.</td><td>All ages</td><td><a href="https://www.coillte.ie/site/belleek/" target="_blank">coillte.ie/site/belleek</a></td></tr>
+<tr><td>Towerhill House Ruins</td><td>Heritage/History</td><td>Carnacon (near Moore Hall)</td><td>Atmospheric ruined 18th-century 'Big House' hidden in trees. Unique architecture with pediment on all 4 facades. Home of Blake family - where Mayo GAA flag originated (1885). Lesser Horseshoe Bat sanctuary. Ask permission at cottage before visiting. Near Moore Hall for a history-themed day out.</td><td>Older children</td><td><a href="https://www.historicalballinrobe.org/places/townlands-and-surrounding-areas/towerhill_house_carnacon_co_mayo" target="_blank">historicalballinrobe.org</a></td></tr>
+<tr><td>Granuaile Centre (Pirate Queen Museum)</td><td>Museum/Heritage</td><td>Louisburgh</td><td>Small engaging museum about Grace O'Malley 'The Pirate Queen' in former church. Film, interactive exhibits, Famine history upstairs. Even teens get absorbed! Adults €5, seniors/students €2.50, CHILDREN FREE. Mon-Fri 10am-5pm.</td><td>Ages 6+</td><td><a href="https://www.discoverireland.ie/mayo/granuaile-visitor-centre" target="_blank">discoverireland.ie/mayo/granuaile-visitor-centre</a></td></tr>
+<tr><td>Louisburgh & Old Head Beaches</td><td>Beach/Watersports</td><td>Louisburgh area</td><td>Multiple BLUE FLAG beaches! Old Head: sandy beach, rock pools (natural aquariums!), pier jumping, views of Croagh Patrick. Cross & Carrowniskey: surfing. SUP, kayaking, coasteering available. Wild Atlantic Leisure for equipment hire. BigStyle Surf School on Cross Beach.</td><td>All ages</td><td><a href="https://www.mayo.ie/en-ie/visit-mayo/explore-towns-villages/louisburgh" target="_blank">mayo.ie/itineraries/explore-towns-villages/louisburgh</a></td></tr>
+<tr><td>Delphi Adventure Resort</td><td>Adventure/Outdoor</td><td>Delphi Valley (nr Louisburgh)</td><td>30+ years outdoor education experience! 20+ activities: kayaking on Killary Fjord, zip-lining, coasteering, archery, abseiling, raft building, climbing. DELPHI DYNAMOS (ages 3-7): FREE kids club with nature walks, mini-bushcraft, arts & crafts. Summer camps (ages 8-17): 5-day €629, 7-day €809. Day activities from €17.50/child. School/homeschool group packages available - customised programmes!</td><td>Ages 3+</td><td><a href="https://delphiadventureresort.com/" target="_blank">delphiadventureresort.com</a></td></tr>
+<tr><td>Clare Lake, Land of Giants & Mayfield Loop</td><td>Nature/Walks/Playground</td><td>Claremorris</td><td>5km Clare Lake loop + 3km Mayfield Lake loop (opened 2021). LAND OF GIANTS sculptures at McMahon Park entrance. 600m boardwalk, fishing spots, wooden bridges, wildlife signs, KM markers. Flat, multi-access - suitable for wheelchairs, buggies, young children. Newly renovated PLAYGROUND at Mayfield. 218,000 visitors/year! Access from town centre or Lakeview Estate. FREE.</td><td>All ages</td><td><a href="https://mayotrails.com/trail/mayfield-lake-loop-walk/" target="_blank">mayotrails.com/trail/mayfield-lake-loop-walk</a></td></tr>
+<tr><td>Achill Experience / Outdoor Education Centre</td><td>Adventure/Outdoor Education</td><td>Keel, Achill Island</td><td>Ireland's first outdoor education centre (since 1971)! 20+ activities: surfing, kayaking, coasteering, abseiling, cycling, hill walking, archery, orienteering. On magnificent 3km Keel Beach. School/homeschool residential programmes with curriculum-based activities. Ages 7+. Summer bus from Westport to Keel beach (June-Aug). Builds confidence, teamwork & outdoor skills.</td><td>Ages 7+</td><td><a href="https://achillexperience.ie/" target="_blank">achillexperience.ie</a></td></tr>
+<tr><td>Mulranny Causeway, Beach & Walks</td><td>Nature/Beach/Walks</td><td>Mulranny (25 min from Achill)</td><td>Unique 1889 causeway over tidal salt marsh - watch it flood at high tide! Orchids, sea lavender, Brent Geese in winter. BLUE FLAG beach with lifeguards (summer), safe swimming. Causeway Loop (4.7km, easy) or Cushlecka (9km). On Great Western Greenway - safe cycling for all family. Views of Croagh Patrick, Clew Bay, Clare Island. FREE.</td><td>All ages</td><td><a href="https://mulranny.ie/mulranny-causeway/" target="_blank">mulranny.ie/mulranny-causeway</a></td></tr>
+<tr><td>Raheens Wood</td><td>Nature/Woodland Walk</td><td>6.5km from Castlebar (R311)</td><td>Native woodland with hazel, birch, oak. Short easy trails (1.5km loop, ~30 mins) with tree/plant info signs. WHEELCHAIR ACCESSIBLE multi-access trail. Monument to Marie Browne O'Donel (1809). Plenty of seating with great views. Rare plants: red campion, lungwort lichen. Dogs welcome. Good car parking. FREE.</td><td>All ages</td><td><a href="https://www.coillte.ie/site/raheens-wood/" target="_blank">coillte.ie/site/raheens-wood</a></td></tr>
+<tr><td>Mayo Movie World - Kids Club</td><td>Cinema</td><td>Castlebar (Mayo Leisure Point)</td><td>7-screen cinema with KIDS CLUB every Sat & Sun morning (11:20am) - reduced prices + treat tray! Also: 'Movies with Baby' screenings, sensory-friendly screenings. Family rates available. Free parking. Great rainy day option. 25+ years serving Mayo!</td><td>All ages</td><td><a href="https://www.mayomovieworld.ie/kidsclub" target="_blank">mayomovieworld.ie/kidsclub</a></td></tr>
+<tr><td>Rascals Play Centre</td><td>Indoor Play</td><td>Kiltimagh</td><td>Mayo's longest-serving indoor playground (since 2007)! Modern facilities. Private party room - hot food party package only €12 (sausages, nuggets, chips, ice cream, drink). Good central Mayo location.</td><td>Ages 0-12</td><td><a href="https://rascals.ie/" target="_blank">rascals.ie</a></td></tr>
+<tr><td>Castlebar Books</td><td>Bookshop</td><td>Castlebar</td><td>Independent bookshop - great for curriculum resources, children's books, educational materials. Support local!</td><td>All ages</td><td><a href="https://www.facebook.com/CastlebarBooks/" target="_blank">facebook.com/CastlebarBooks</a></td></tr>
+<tr><td>The Old Thatch - Antiques & Rare Books</td><td>Bookshop/Antiques</td><td>Mulranny</td><td>Charming thatched cottage with rare & second-hand books, antiques. Treasure hunt for book lovers! Combine with Mulranny Causeway walk for a day out.</td><td>All ages</td><td><a href="https://mulranny.ie/the-old-thatch-antiques-rare-books/" target="_blank">mulranny.ie/the-old-thatch-antiques-rare-books</a></td></tr>
+<tr><td>Books at One</td><td>Bookshop</td><td>Louisburgh</td><td>Independent bookshop in the heart of Louisburgh. Children's section, local interest, curriculum support. Combine with Granuaile Centre & beach day!</td><td>All ages</td><td><a href="https://www.booksatone.ie/" target="_blank">booksatone.ie</a></td></tr>
+<tr><td>Greenway Lane Art Studio & Café</td><td>Arts/Creative</td><td>Newport (F28 WY97)</td><td>Art studio & café on the Great Western Greenway. KIDS CAMPS during school holidays (Easter, summer). Creative activities packed with colour! Perfect stop on a Greenway cycle. Book: 085 721 1863</td><td>All ages</td><td><a href="https://www.greenwaylaneartstudiocafe.com/" target="_blank">greenwaylaneartstudiocafe.com</a></td></tr>
+<tr><td>Mayo Leisure Point</td><td>Entertainment Complex</td><td>Castlebar</td><td>All-in-one family entertainment! 10-pin bowling, cinema (Mayo Movie World), soft play area, laser tag, arcade games. Café on-site. Free parking. Great rainy day option - spend a whole day here!</td><td>All ages</td><td><a href="https://www.mayoleisurepoint.ie/" target="_blank">mayoleisurepoint.ie</a></td></tr>
+</table>
+</div>
+<div id="sheet4" class="sheet" role="tabpanel" aria-labelledby="tab4">
+<table>
+<tr><th>Venue/Activity</th><th>Category</th><th>Location</th><th>Description</th><th>Best For</th><th>Website/Contact</th></tr>
+<tr><td>Galway City Museum</td><td>Museum</td><td>Spanish Parade, Galway City</td><td>FREE admission! 3 floors at Spanish Arch. Exhibitions: Sea Science, Medieval Galway, The Claddagh, Galway Hooker boat, Revolution 1913-23. 'Galway in Objects' schools programme encourages learning through creativity. Tue-Sat 10am-5pm.</td><td>All ages</td><td>galwaycitymuseum.ie | FREE</td></tr>
+<tr><td>Galway Atlantaquaria</td><td>Aquarium</td><td>Salthill, Galway</td><td>Ireland's largest aquarium with 170+ species. Touch pools, ray pool, ocean tank, fin whale skeleton. Summer Science workshops (11 years running!), Virtual Aquarium Tour with worksheets (English & Irish). Quiet Nights for sensory-sensitive visitors. Online booking cheaper than walk-in.</td><td>All ages</td><td><a href="https://www.nationalaquarium.ie/" target="_blank">nationalaquarium.ie | 091-585100</a></td></tr>
+<tr><td>Wildlands</td><td>Adventure Centre</td><td>Moycullen</td><td>Indoor and outdoor activities - climbing, adventure courses, nature trails.</td><td>Ages 4+</td><td><a href="https://www.wildlands.ie/" target="_blank">wildlands.ie</a></td></tr>
+<tr><td>Slieve Aughty Experience</td><td>Farm/Nature</td><td>Kylebrack</td><td>Pet farm, self-guided walks, arts & crafts, toddler playground, Enchanted Forest.</td><td>Ages 2-12</td><td><a href="https://www.facebook.com/slieveaughty" target="_blank">facebook.com/slieveaughty</a></td></tr>
+<tr><td>Knockma Wood</td><td>Nature/Heritage</td><td>Caherlistrane</td><td>Ancient woodland with Queen Maeve's legendary burial place. Trails and folklore.</td><td>All ages</td><td><a href="https://www.coillte.ie/" target="_blank">coillte.ie</a></td></tr>
+<tr><td>Barna Woods</td><td>Nature</td><td>Barna</td><td>Woodland walks with streams for splashing. Nature exploration.</td><td>All ages</td><td>Free access</td></tr>
+<tr><td>Rinville Forest Park</td><td>Nature/Play</td><td>Oranmore</td><td>Forest trails with playground. Coastal views.</td><td>All ages</td><td>Free access</td></tr>
+<tr><td>Merlin Park Woods</td><td>Nature/Heritage</td><td>Galway City</td><td>Forest walks with castle ruins to explore.</td><td>All ages</td><td>Free access</td></tr>
+<tr><td>The Enchanted Forest</td><td>Nature/Fantasy</td><td>Kylebrack, Loughrea</td><td>Fairy and gnome trail through woodland.</td><td>Ages 2-10</td><td>Local attraction</td></tr>
+<tr><td>Portumna Forest Park</td><td>Nature</td><td>Portumna</td><td>Nature trail, wildlife, lakeside walks.</td><td>All ages</td><td><a href="https://www.coillte.ie/" target="_blank">coillte.ie</a></td></tr>
+<tr><td>Aran Islands</td><td>Heritage/Nature</td><td>Ferry from Rossaveal/Galway</td><td>Unique cultural experience, ancient forts, Irish language, cycling.</td><td>Ages 6+</td><td><a href="https://www.aranislands.ie/" target="_blank">aranislands.ie</a></td></tr>
+<tr><td>Connemara National Park</td><td>Nature</td><td>Letterfrack</td><td>Visitor centre, walking trails, nature activities. Diamond Hill climb.</td><td>All ages</td><td><a href="https://www.connemaranationalpark.ie/" target="_blank">connemaranationalpark.ie</a></td></tr>
+<tr><td>Brigit's Garden</td><td>Garden/Celtic</td><td>Roscahill</td><td>Award-winning Celtic gardens in 11 acres of woodland & meadows. SFI Discover Science Centre with STEM trail. Seasonal school workshops (pond-dipping, seed sowing, nature trails). Roundhouse, nature playground, café. Non-profit focused on environmental education.</td><td>All ages</td><td><a href="https://www.brigitsgarden.ie/" target="_blank">brigitsgarden.ie | 091-550905</a></td></tr>
+<tr><td>Cong Forest & Nature Trail</td><td>Nature/Heritage</td><td>Cong (Mayo/Galway border)</td><td>Quiet Man filming location! Forest trails (30 mins to several hours). CAVES to explore: Teach Aille, Pigeon Hole (descend into earth!). Climb 85 steps up GUINNESS TOWER for forest canopy views. Wildlife: pine martens, otters, red squirrels, badgers. Safe off-road cycling. Cong Abbey nearby. FREE.</td><td>All ages</td><td><a href="https://www.coillte.ie/site/cong-forest/" target="_blank">coillte.ie/site/cong-forest</a></td></tr>
+<tr><td>Spraoi sa Choill - Clonbur Woodland Playground</td><td>Playground/Nature</td><td>Clonbur (Mayo/Galway border)</td><td>One of biggest village playgrounds in Galway! In old walled garden at entrance to Clonbur Woods. Tunnels, climbing forts, LONG SLIDE on hill, willow tunnel. FAIRY TRAIL in woods. Paved walks for buggies/bikes. Outdoor exercise equipment for adults. Coffee/ice cream van often there. Toilets. Links to 12km trail to Cong. FREE.</td><td>All ages</td><td><a href="https://clonburcloghbrack.ie/woodland-playground-project/" target="_blank">clonburcloghbrack.ie</a></td></tr>
+<tr><td>Baboró International Arts Festival for Children</td><td>Arts Festival</td><td>Galway City (October)</td><td>Ireland's FLAGSHIP children's arts festival! 29 years running. Theatre, dance, circus, puppetry, visual art, workshops for newborns to teens. SCHOOLS PROGRAMME with 50% subsidised tickets! Free exhibitions & storytelling. Inclusive workshops (e.g. for deaf/hard of hearing). Children's Panel shapes programming. Contact: schools@baboro.ie</td><td>All ages</td><td><a href="https://www.baboro.ie/" target="_blank">baboro.ie</a></td></tr>
+<tr><td>Clifden Arts Festival</td><td>Arts Festival</td><td>Clifden (September)</td><td>Ireland's LONGEST-RUNNING community arts festival (49 years)! Children's workshops, storytelling, live performances. Flutter-Bop for toddlers/pre-schoolers. Creative writing, music, theatre, film workshops in local schools. Tiny Mutiny - FREE family event celebrating young Galway artists. September 17-27, 2026.</td><td>All ages</td><td><a href="https://clifdenartsfestival.ie/" target="_blank">clifdenartsfestival.ie</a></td></tr>
+</table>
+</div>
+<div id="sheet5" class="sheet" role="tabpanel" aria-labelledby="tab5">
+<table>
+<tr><th>Venue/Activity</th><th>Category</th><th>Location</th><th>Description</th><th>Best For</th><th>Website/Contact</th></tr>
+<tr><td>Carrowmore Megalithic Cemetery</td><td>Archaeological</td><td>Carrowmore</td><td>One of Ireland's largest and oldest megalithic cemeteries. Visitor centre with exhibitions.</td><td>Ages 6+</td><td><a href="https://www.heritageireland.ie/" target="_blank">heritageireland.ie</a></td></tr>
+<tr><td>Caves of Keash</td><td>Geology/Heritage</td><td>Keshcorran</td><td>17 caves in limestone hillside with prehistoric and mythological significance.</td><td>Ages 8+</td><td>Free access</td></tr>
+<tr><td>Funny Bones House of Fun</td><td>Indoor Play</td><td>Collooney (10 min from Sligo)</td><td>10,000 sq ft indoor adventure! Pirate-themed play frame, 10m slide, trampolines, air cannons, sports cage. VERTIGO: 7m climbing wall (4 lanes), 5m high ropes, electric go-karts, laser quest, target paintball. Under-2s soft play area. Sleepover packages for groups (30-150). Tue-Sat 10:30am-7pm, Sun 12-7pm.</td><td>Ages 0-14+</td><td><a href="https://www.funnybones.ie/" target="_blank">funnybones.ie</a></td></tr>
+<tr><td>Sligo County Museum</td><td>Museum</td><td>Sligo Town</td><td>Local history, Yeats collection, archaeological finds.</td><td>Ages 6+</td><td><a href="https://www.sligococo.ie/" target="_blank">sligococo.ie</a></td></tr>
+<tr><td>Strandhill Beach</td><td>Beach/Surfing</td><td>Strandhill</td><td>Popular beach for surfing lessons and coastal walks. Voya seaweed baths nearby.</td><td>All ages</td><td><a href="https://www.strandhillsligo.com/" target="_blank">strandhillsligo.com</a></td></tr>
+<tr><td>Lissadell House</td><td>Heritage</td><td>Drumcliff</td><td>Historic house with gardens. Constance Markievicz connection. Tours available.</td><td>Ages 8+</td><td><a href="https://www.lissadellhouse.com/" target="_blank">lissadellhouse.com</a></td></tr>
+<tr><td>Glencar Waterfall</td><td>Nature</td><td>Glencar</td><td>Beautiful waterfall in scenic valley, immortalised by W.B. Yeats.</td><td>All ages</td><td>Free access</td></tr>
+<tr><td>Eagles Flying</td><td>Wildlife</td><td>Ballymote</td><td>Ireland's largest sanctuary for birds of prey. Flying displays and interaction.</td><td>All ages</td><td><a href="https://www.eaglesflying.com/" target="_blank">eaglesflying.com</a></td></tr>
+<tr><td>Knocknarea</td><td>Outdoor/Heritage</td><td>Strandhill area</td><td>Mountain walk to Queen Maeve's Cairn. Panoramic views of Sligo.</td><td>Ages 10+</td><td>Free access</td></tr>
+<tr><td>5 Star Fun - Home Ed Meetup</td><td>Social Meetup</td><td>Grange, Co. Sligo</td><td>Regular home education meetup on 2nd and 4th Monday of each month from 10am. Great for socialising.</td><td>All ages</td><td>Co. Sligo 5 Star Fun</td></tr>
+</table>
+</div>
+<div id="sheet6" class="sheet" role="tabpanel" aria-labelledby="tab6">
+<table>
+<tr><th>Venue/Activity</th><th>Category</th><th>Location</th><th>Description</th><th>Best For</th><th>Website/Contact</th></tr>
+<tr><td>Lough Key Forest & Activity Park</td><td>Adventure/Nature</td><td>Boyle, Roscommon</td><td>350 hectares of woodland. Tree canopy walk, Boda Borg adventure, ZipIt, kayaking, Adventure Play Kingdom.</td><td>All ages</td><td><a href="https://www.loughkey.ie/" target="_blank">loughkey.ie</a></td></tr>
+<tr><td>Rathcroghan Visitor Centre</td><td>Heritage/Archaeology</td><td>Tulsk, Roscommon</td><td>Celtic Royal Site. Learn about Iron Age Ireland, cave of the Otherworld (Oweynagat).</td><td>Ages 6+</td><td><a href="https://www.rathcroghan.ie/" target="_blank">rathcroghan.ie</a></td></tr>
+<tr><td>Arigna Mining Experience</td><td>Museum/Heritage</td><td>Arigna, Roscommon</td><td>Underground mine tours led by ex-miners. 400 years of mining history.</td><td>Ages 8+</td><td><a href="https://www.arignaminingexperience.ie/" target="_blank">arignaminingexperience.ie</a></td></tr>
+<tr><td>Strokestown Park & Famine Museum</td><td>Heritage/History</td><td>Strokestown, Roscommon</td><td>Georgian mansion with National Famine Museum. Important Irish history.</td><td>Ages 10+</td><td><a href="https://www.strokestownpark.ie/" target="_blank">strokestownpark.ie</a></td></tr>
+<tr><td>Glendeer Pet Farm</td><td>Farm</td><td>Athlone area</td><td>Animals to pet and feed, playground, fairy trail, indoor and outdoor areas.</td><td>Ages 2-10</td><td><a href="https://www.glendeerpetfarm.com/" target="_blank">glendeerpetfarm.com</a></td></tr>
+<tr><td>Derryglad Folk & Heritage Museum</td><td>Museum</td><td>Curraghboy, Roscommon</td><td>6,000+ items showing Irish rural life. Largest private rail collection in Ireland.</td><td>All ages</td><td><a href="https://www.derryglad.com/" target="_blank">derryglad.com</a></td></tr>
+<tr><td>King House</td><td>Heritage</td><td>Boyle, Roscommon</td><td>Restored Georgian mansion with interactive exhibits on local history.</td><td>Ages 6+</td><td><a href="https://www.kinghouse.ie/" target="_blank">kinghouse.ie</a></td></tr>
+<tr><td>Elphin Windmill</td><td>Heritage</td><td>Elphin, Roscommon</td><td>Ireland's oldest and only working windmill in the West.</td><td>All ages</td><td><a href="https://www.elphinwindmill.ie/" target="_blank">elphinwindmill.ie</a></td></tr>
+<tr><td>Roscommon Castle & Loughnaneane Park</td><td>Heritage/Park</td><td>Roscommon Town</td><td>13th century Norman castle ruins. Park with playground, crannog, nature trails. Free.</td><td>All ages</td><td>Free access</td></tr>
+<tr><td>Shannon River Adventure</td><td>Water Sports</td><td>Leitrim</td><td>Kayaking, canoeing, pier jumping, raft building, archery, climbing wall.</td><td>Ages 6+</td><td><a href="https://www.shannonriveradventure.com/" target="_blank">shannonriveradventure.com</a></td></tr>
+<tr><td>Glenview Folk Museum</td><td>Museum</td><td>Ballinamore, Leitrim</td><td>Traditional Irish cottage life and farming history.</td><td>All ages</td><td>Local inquiry</td></tr>
+<tr><td>Tullyboy Farm</td><td>Working Farm</td><td>Between Boyle & Carrick-on-Shannon</td><td>Real working visitor farm. Hand-feed animals (alpacas, llamas, donkeys, hens, emu), tractor barrel rides, straw dives, pony rides, playground, indoor sandpit. Rural Life Museum. 3-hour educational school tours with Farmer Matt. Easter & summer camps.</td><td>All ages</td><td><a href="https://www.tullyboyfarm.com/" target="_blank">tullyboyfarm.com</a></td></tr>
+</table>
+</div>
+<div id="sheet7" class="sheet" role="tabpanel" aria-labelledby="tab7">
+<table>
+<tr><th>QUICK REFERENCE - TOP PICKS BY CATEGORY</th><th></th></tr>
+<tr><td>MUSEUMS & HERITAGE</td><td></td></tr>
+<tr><td>National Museum - Country Life</td><td>Castlebar, Mayo</td></tr>
+<tr><td>Céide Fields</td><td>North Mayo</td></tr>
+<tr><td>Rathcroghan</td><td>Roscommon</td></tr>
+<tr><td>Galway City Museum</td><td>Galway City</td></tr>
+<tr><td>NATURE & OUTDOOR</td><td></td></tr>
+<tr><td>Great Western Greenway</td><td>Mayo</td></tr>
+<tr><td>Connemara National Park</td><td>Galway</td></tr>
+<tr><td>Lough Key Forest Park</td><td>Roscommon</td></tr>
+<tr><td>Knocknarea</td><td>Sligo</td></tr>
+<tr><td>INDOOR (RAINY DAYS)</td><td></td></tr>
+<tr><td>Mayo Leisure Point</td><td>Castlebar</td></tr>
+<tr><td>Galway Atlantaquaria</td><td>Salthill</td></tr>
+<tr><td>Funny Bones</td><td>Sligo</td></tr>
+<tr><td>Arigna Mining Experience</td><td>Roscommon</td></tr>
+<tr><td>Funster Playcentre</td><td>Castlebar</td></tr>
+<tr><td>Graune Pet Farm</td><td>Ballyhaunis</td></tr>
+<tr><td>Glendeer Pet Farm</td><td>Roscommon</td></tr>
+<tr><td>Eagles Flying</td><td>Sligo</td></tr>
+<tr><td>Slieve Aughty Experience</td><td>Galway</td></tr>
+<tr><td>FREE ACTIVITIES</td><td></td></tr>
+<tr><td>Forest Parks</td><td>Various</td></tr>
+<tr><td>Beaches</td><td>Coastal areas</td></tr>
+<tr><td>Roscommon Castle & Park</td><td>Roscommon</td></tr>
+<tr><td>Caves of Keash</td><td>Sligo</td></tr>
+<tr><td>HOME ED FACEBOOK GROUPS</td><td></td></tr>
+<tr><td>Mayo Sligo Home Educators</td><td><a href="https://www.facebook.com/groups/381383792030224" target="_blank">facebook.com/groups/381383792030224</a></td></tr>
+<tr><td>Galway Home Ed (Under 8s)</td><td><a href="https://www.facebook.com/groups/132100874262478" target="_blank">facebook.com/groups/132100874262478</a></td></tr>
+<tr><td>Leitrim & Surrounds</td><td><a href="https://www.facebook.com/groups/1413952212120229" target="_blank">facebook.com/groups/1413952212120229</a></td></tr>
+<tr><td>Roscommon Homeschooling</td><td><a href="https://www.facebook.com/groups/964621527025426" target="_blank">facebook.com/groups/964621527025426</a></td></tr>
+<tr><td>EDUCATIONAL PROGRAMMES</td><td></td></tr>
+<tr><td>Brigit's Garden (SFI Discover)</td><td>Roscahill, Galway</td></tr>
+<tr><td>Atlantaquaria Summer Science</td><td>Salthill, Galway</td></tr>
+<tr><td>Heritage Ireland Education</td><td>Various OPW sites</td></tr>
+<tr><td>Tullyboy Farm Tours</td><td>Boyle, Roscommon</td></tr>
+<tr><td>Rathcroghan Visitor Centre</td><td>Tulsk, Roscommon</td></tr>
+</table>
+</div>
+
+<script>
+// Tab Management
+function showSheet(id, el) {
+  // Update sheets
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+  });
+
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  el.setAttribute('aria-selected', 'true');
+  el.setAttribute('tabindex', '0');
+
+  // Save to localStorage
+  localStorage.setItem('activeTab', id);
+
+  // Clear search when switching tabs
+  clearSearchResults();
+}
+
+// Search Functionality
+const searchBox = document.getElementById('searchBox');
+const clearSearchBtn = document.getElementById('clearSearch');
+const searchResults = document.getElementById('searchResults');
+
+searchBox.addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase().trim();
+
+  if (searchTerm.length === 0) {
+    clearSearchResults();
+    return;
+  }
+
+  clearSearchBtn.style.display = 'block';
+  performSearch(searchTerm);
+});
+
+clearSearchBtn.addEventListener('click', function() {
+  searchBox.value = '';
+  clearSearchResults();
+  searchBox.focus();
+});
+
+function performSearch(searchTerm) {
+  let totalResults = 0;
+
+  // Search through all tables
+  document.querySelectorAll('.sheet table').forEach(table => {
+    const rows = table.querySelectorAll('tbody tr, tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+
+      if (text.includes(searchTerm)) {
+        row.classList.remove('hidden');
+        totalResults++;
+
+        // Highlight matching text
+        row.querySelectorAll('td').forEach(td => {
+          const originalText = td.textContent;
+          const regex = new RegExp(`(${searchTerm})`, 'gi');
+
+          // Only highlight if this cell contains the search term
+          if (originalText.toLowerCase().includes(searchTerm)) {
+            const highlightedText = originalText.replace(regex, '<span class="highlight">$1</span>');
+            // Store original if not already stored
+            if (!td.getAttribute('data-original')) {
+              td.setAttribute('data-original', originalText);
+            }
+            td.innerHTML = highlightedText;
+          }
+        });
+      } else {
+        row.classList.add('hidden');
+      }
+    });
+  });
+
+  // Show results count
+  searchResults.style.display = 'block';
+  searchResults.textContent = `Found ${totalResults} result${totalResults !== 1 ? 's' : ''} for "${searchBox.value}"`;
+
+  // Show all tabs when searching
+  if (totalResults > 0) {
+    document.querySelectorAll('.sheet').forEach(sheet => {
+      const visibleRows = sheet.querySelectorAll('tr:not(.hidden)');
+      if (visibleRows.length > 0) {
+        sheet.classList.add('active');
+      }
+    });
+  }
+}
+
+function clearSearchResults() {
+  clearSearchBtn.style.display = 'none';
+  searchResults.style.display = 'none';
+
+  // Remove hidden class and highlights from all rows
+  document.querySelectorAll('tr.hidden').forEach(row => {
+    row.classList.remove('hidden');
+  });
+
+  // Remove highlights and restore original text
+  document.querySelectorAll('td[data-original]').forEach(td => {
+    td.textContent = td.getAttribute('data-original');
+    td.removeAttribute('data-original');
+  });
+
+  // Restore tab visibility
+  document.querySelectorAll('.sheet').forEach(sheet => {
+    sheet.classList.remove('active');
+  });
+
+  // Show the active tab
+  const activeTab = document.querySelector('.tab.active');
+  if (activeTab) {
+    const sheetId = activeTab.getAttribute('aria-controls');
+    document.getElementById(sheetId).classList.add('active');
+  }
+}
+
+// Keyboard Navigation
+document.addEventListener('keydown', function(e) {
+  if (!e.target.classList.contains('tab')) return;
+
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const currentIndex = tabs.indexOf(e.target);
+
+  let targetIndex = currentIndex;
+
+  if (e.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
+    targetIndex = currentIndex + 1;
+  } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+    targetIndex = currentIndex - 1;
+  } else if (e.key === 'Home') {
+    targetIndex = 0;
+  } else if (e.key === 'End') {
+    targetIndex = tabs.length - 1;
+  } else {
+    return; // Not a navigation key
+  }
+
+  if (targetIndex !== currentIndex) {
+    e.preventDefault();
+    tabs[targetIndex].click();
+    tabs[targetIndex].focus();
+  }
+});
+
+// Restore saved tab on page load
+window.addEventListener('DOMContentLoaded', function() {
+  const savedTab = localStorage.getItem('activeTab');
+  if (savedTab) {
+    const savedTabElement = document.querySelector(`[aria-controls="${savedTab}"]`);
+    if (savedTabElement) {
+      showSheet(savedTab, savedTabElement);
+    }
+  }
+
+  // Add data-label attributes for mobile card layout
+  document.querySelectorAll('table').forEach(table => {
+    const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+
+    table.querySelectorAll('tbody tr, tr').forEach(row => {
+      const cells = row.querySelectorAll('td');
+      cells.forEach((cell, index) => {
+        if (headers[index]) {
+          cell.setAttribute('data-label', headers[index]);
+        }
+      });
+    });
+  });
+});
+</script>
+</body>
+</html>
